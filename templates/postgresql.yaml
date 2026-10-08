@@ -1,0 +1,28 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: {{ include "teammapper.postgresqlName" . }}
+  labels:
+    {{- include "teammapper.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-options: Prune=false
+    helm.sh/resource-policy: keep
+spec:
+  teamId: {{ .Values.postgresql.teamId | quote }}
+  volume:
+    size: {{ .Values.postgresql.volume.size | quote }}
+    {{- with .Values.postgresql.volume.storageClass }}
+    storageClass: {{ . }}
+    {{- end }}
+  numberOfInstances: {{ .Values.postgresql.instances }}
+  users:
+    {{ .Values.postgresql.user }}: []
+  databases:
+    {{ .Values.postgresql.database }}: {{ .Values.postgresql.user }}
+  postgresql:
+    version: {{ .Values.postgresql.version | quote }}
+  resources:
+    {{- toYaml .Values.postgresql.resources | nindent 4 }}
+{{- end }}

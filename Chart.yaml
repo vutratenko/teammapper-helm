@@ -1,0 +1,14 @@
+apiVersion: v2
+name: teammapper
+description: A Helm chart for self-hosting TeamMapper on Kubernetes
+type: application
+version: 0.1.0
+appVersion: "v0.2.9-3"
+home: https://github.com/b310-digital/teammapper
+sources:
+  - https://github.com/b310-digital/teammapper
+maintainers:
+  - name: vutratenko
+    url: https://github.com/vutratenko
+annotations:
+  artifacthub.io/license: MIT

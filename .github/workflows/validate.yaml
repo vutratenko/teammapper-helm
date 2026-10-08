@@ -1,0 +1,28 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: v4.0.0
+      - name: Lint
+        run: helm lint . --strict --values values.sion2k.yaml
+      - name: Render assertions
+        run: bash tests/render.sh
+      - name: Render manifests
+        run: helm template teammapper . --namespace teammapper --values values.sion2k.yaml > rendered.yaml
+      - name: Validate Kubernetes schemas
+        run: |
+          docker run --rm -v "${PWD}:/work" ghcr.io/yannh/kubeconform:v0.7.0 \
+            -strict -summary -skip postgresql -ignore-missing-schemas /work/rendered.yaml

@@ -1,0 +1,21 @@
+config:
+  deleteAfterDays: 365
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: corp-acme
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  host: teammapper.sion2k.ru
+  tls:
+    enabled: true
+    secretName: teammapper-tls
+
+postgresql:
+  volume:
+    size: 10Gi
+    storageClass: proxmox-data-xfs

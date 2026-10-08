@@ -1,0 +1,7 @@
+.git/
+.github/
+argocd/
+tests/
+rendered.yaml
+*.tgz
+*.secret.yaml

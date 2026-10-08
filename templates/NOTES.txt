@@ -1,0 +1,7 @@
+TeamMapper is available inside the cluster at:
+  http://{{ include "teammapper.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}
+{{- if .Values.ingress.enabled }}
+
+Public URL:
+  https://{{ .Values.ingress.host }}
+{{- end }}

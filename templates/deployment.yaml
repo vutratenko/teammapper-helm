@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "teammapper.fullname" . }}
+  labels:
+    {{- include "teammapper.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "teammapper.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ .Values.config | toJson | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "teammapper.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "teammapper.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: teammapper
+          image: {{ include "teammapper.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: MODE
+              value: {{ .Values.config.mode | quote }}
+            - name: BINDING
+              value: {{ .Values.config.binding | quote }}
+            - name: POSTGRES_DATABASE
+              value: {{ .Values.postgresql.database | quote }}
+            - name: POSTGRES_HOST
+              value: {{ include "teammapper.postgresqlHost" . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.postgresql.existingPort | quote }}
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "teammapper.postgresqlSecret" . }}
+                  key: {{ .Values.postgresql.existingCredentialsUserKey }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "teammapper.postgresqlSecret" . }}
+                  key: {{ .Values.postgresql.existingCredentialsPasswordKey }}
+            - name: POSTGRES_SSL
+              value: {{ .Values.config.postgresSsl | quote }}
+            - name: POSTGRES_SSL_REJECT_UNAUTHORIZED
+              value: {{ .Values.config.postgresSslRejectUnauthorized | quote }}
+            - name: POSTGRES_QUERY_TIMEOUT
+              value: {{ .Values.config.postgresQueryTimeout | quote }}
+            - name: POSTGRES_STATEMENT_TIMEOUT
+              value: {{ .Values.config.postgresStatementTimeout | quote }}
+            - name: DELETE_AFTER_DAYS
+              value: {{ .Values.config.deleteAfterDays | quote }}
+            - name: AI_ENABLED
+              value: {{ .Values.config.aiEnabled | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: {{ .Values.existingSecretJwtKey }}
+          startupProbe:
+            tcpSocket:
+              port: http
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

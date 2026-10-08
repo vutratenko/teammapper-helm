@@ -1,0 +1,110 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/b310-digital/teammapper
+  tag: v0.2.9-3
+  digest: sha256:f120a4ad4b4e11c44df5ff25be7d3385e35e8771fb09d87114bfba39cb0b3bda
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  host: teammapper.example.com
+  path: /
+  pathType: Prefix
+  tls:
+    enabled: true
+    secretName: teammapper-tls
+
+config:
+  mode: PROD
+  binding: 0.0.0.0
+  deleteAfterDays: 30
+  aiEnabled: false
+  logLevel: warn
+  postgresSsl: false
+  postgresSslRejectUnauthorized: false
+  postgresQueryTimeout: 100000
+  postgresStatementTimeout: 100000
+
+existingSecret: teammapper-app
+existingSecretJwtKey: jwt-secret
+
+postgresql:
+  enabled: true
+  teamId: teammapper
+  instances: 1
+  version: "15"
+  database: teammapper
+  user: teammapper
+  volume:
+    size: 10Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  existingHost: ""
+  existingPort: 5432
+  existingCredentialsSecret: ""
+  existingCredentialsUserKey: username
+  existingCredentialsPasswordKey: password
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+probes:
+  startup:
+    failureThreshold: 30
+    periodSeconds: 5
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 20
+
+networkPolicy:
+  enabled: true
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
