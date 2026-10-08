@@ -4,9 +4,8 @@ config:
 
 ingress:
   enabled: true
-  # Phase one keeps production traffic direct. Change to gateway only after
-  # Gateway and HTTPRoute conditions are healthy and internal tests pass.
-  backend: service
+  # Set to service for an immediate rollback to direct NGINX routing.
+  backend: gateway
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: corp-acme

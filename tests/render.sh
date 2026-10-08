@@ -3,8 +3,8 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 rendered="$(mktemp)"
-gateway_rendered="$(mktemp)"
-trap 'rm -f "${rendered}" "${gateway_rendered}"' EXIT
+service_rendered="$(mktemp)"
+trap 'rm -f "${rendered}" "${service_rendered}"' EXIT
 
 helm template teammapper "${repo_root}" \
   --namespace teammapper \
@@ -13,7 +13,7 @@ helm template teammapper "${repo_root}" \
 helm template teammapper "${repo_root}" \
   --namespace teammapper \
   --values "${repo_root}/values.sion2k.yaml" \
-  --set ingress.backend=gateway >"${gateway_rendered}"
+  --set ingress.backend=service >"${service_rendered}"
 
 assert_contains() {
   local expected="$1"
@@ -52,13 +52,13 @@ assert_contains "runAsUser: 1000"
 assert_not_contains "kind: Secret"
 assert_not_contains "latest"
 
-if grep -Fq -- "name: cilium-gateway-teammapper" "${rendered}"; then
-  echo "expected first migration phase to keep Ingress on the application Service" >&2
+if ! grep -Fq -- "name: cilium-gateway-teammapper" "${rendered}"; then
+  echo "expected sion2k Ingress to point at the Cilium Gateway Service" >&2
   exit 1
 fi
 
-if ! grep -Fq -- "name: cilium-gateway-teammapper" "${gateway_rendered}"; then
-  echo "expected gateway migration phase to point Ingress at the Cilium Gateway Service" >&2
+if grep -Fq -- "name: cilium-gateway-teammapper" "${service_rendered}"; then
+  echo "expected rollback mode to point Ingress directly at the application Service" >&2
   exit 1
 fi
 
