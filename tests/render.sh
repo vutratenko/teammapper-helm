@@ -41,4 +41,9 @@ assert_contains "runAsUser: 1000"
 assert_not_contains "kind: Secret"
 assert_not_contains "latest"
 
+if ! grep -A1 -- "- name: POSTGRES_SSL" "${rendered}" | grep -Fq 'value: "true"'; then
+  echo "expected sion2k PostgreSQL connection to require TLS" >&2
+  exit 1
+fi
+
 echo "render assertions passed"
