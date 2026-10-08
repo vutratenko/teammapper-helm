@@ -37,6 +37,7 @@ assert_contains "storageClass: proxmox-data-xfs"
 assert_contains "name: teammapper-app"
 assert_contains "readOnlyRootFilesystem: true"
 assert_contains "allowPrivilegeEscalation: false"
+assert_contains "runAsUser: 1000"
 assert_not_contains "kind: Secret"
 assert_not_contains "latest"
 
