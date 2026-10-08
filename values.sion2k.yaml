@@ -13,6 +13,8 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Cilium Gateway Services have no EndpointSlices for ingress-nginx to use.
+    nginx.ingress.kubernetes.io/service-upstream: "true"
   host: teammapper.sion2k.ru
   tls:
     enabled: true
