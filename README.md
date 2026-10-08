@@ -10,6 +10,7 @@ with a Zalando PostgreSQL Operator database.
 - Zalando PostgreSQL Operator (`postgresqls.acid.zalan.do`)
 - an Ingress controller when Ingress is enabled
 - cert-manager when certificate annotations are configured
+- Gateway API CRDs and a compatible controller when `gatewayApi.enabled=true`
 
 ## Render and validate
 
@@ -45,6 +46,14 @@ Argo CD tracks `main`, automatically reconciles drift, and prunes resources
 removed from the chart. The PostgreSQL resource is protected against pruning;
 its persistent storage must be removed explicitly if the installation is ever
 decommissioned.
+
+### Ingress-to-Gateway migration
+
+When Gateway API is enabled, keep `ingress.backend=service` until the Gateway is
+`Programmed` and its HTTPRoute is accepted. Test the generated
+`cilium-gateway-<release>` Service with the configured Host header, then change
+`ingress.backend` to `gateway`. TLS remains terminated by the NGINX Ingress;
+the Cilium Gateway receives HTTP and forwards it to the TeamMapper Service.
 
 ## Upgrades
 

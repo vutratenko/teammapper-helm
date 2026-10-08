@@ -3,11 +3,17 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 rendered="$(mktemp)"
-trap 'rm -f "${rendered}"' EXIT
+gateway_rendered="$(mktemp)"
+trap 'rm -f "${rendered}" "${gateway_rendered}"' EXIT
 
 helm template teammapper "${repo_root}" \
   --namespace teammapper \
   --values "${repo_root}/values.sion2k.yaml" >"${rendered}"
+
+helm template teammapper "${repo_root}" \
+  --namespace teammapper \
+  --values "${repo_root}/values.sion2k.yaml" \
+  --set ingress.backend=gateway >"${gateway_rendered}"
 
 assert_contains() {
   local expected="$1"
@@ -30,6 +36,11 @@ assert_contains "kind: Service"
 assert_contains "kind: Ingress"
 assert_contains "kind: postgresql"
 assert_contains "kind: NetworkPolicy"
+assert_contains "kind: Gateway"
+assert_contains "kind: HTTPRoute"
+assert_contains "gatewayClassName: cilium"
+assert_contains "name: teammapper"
+assert_contains "port: 80"
 assert_contains "ghcr.io/b310-digital/teammapper:v0.2.9-3@sha256:f120a4ad4b4e11c44df5ff25be7d3385e35e8771fb09d87114bfba39cb0b3bda"
 assert_contains "teammapper.sion2k.ru"
 assert_contains "cert-manager.io/cluster-issuer: corp-acme"
@@ -40,6 +51,16 @@ assert_contains "allowPrivilegeEscalation: false"
 assert_contains "runAsUser: 1000"
 assert_not_contains "kind: Secret"
 assert_not_contains "latest"
+
+if grep -Fq -- "name: cilium-gateway-teammapper" "${rendered}"; then
+  echo "expected first migration phase to keep Ingress on the application Service" >&2
+  exit 1
+fi
+
+if ! grep -Fq -- "name: cilium-gateway-teammapper" "${gateway_rendered}"; then
+  echo "expected gateway migration phase to point Ingress at the Cilium Gateway Service" >&2
+  exit 1
+fi
 
 if ! grep -A1 -- "- name: POSTGRES_SSL" "${rendered}" | grep -Fq 'value: "true"'; then
   echo "expected sion2k PostgreSQL connection to require TLS" >&2

@@ -1,0 +1,24 @@
+{{- if .Values.gatewayApi.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "teammapper.fullname" . }}
+  labels:
+    {{- include "teammapper.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  parentRefs:
+    - name: {{ include "teammapper.fullname" . }}
+      sectionName: {{ .Values.gatewayApi.listener.name }}
+  hostnames:
+    - {{ .Values.ingress.host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: {{ .Values.gatewayApi.route.pathType }}
+            value: {{ .Values.gatewayApi.route.path }}
+      backendRefs:
+        - name: {{ include "teammapper.fullname" . }}
+          port: {{ .Values.service.port }}
+{{- end }}

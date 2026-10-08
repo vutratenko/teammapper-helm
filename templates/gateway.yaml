@@ -1,0 +1,27 @@
+{{- if .Values.gatewayApi.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "teammapper.fullname" . }}
+  labels:
+    {{- include "teammapper.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  gatewayClassName: {{ .Values.gatewayApi.className }}
+  {{- with .Values.gatewayApi.addresses }}
+  addresses:
+    {{- range . }}
+    - type: IPAddress
+      value: {{ . | quote }}
+    {{- end }}
+  {{- end }}
+  listeners:
+    - name: {{ .Values.gatewayApi.listener.name }}
+      protocol: {{ .Values.gatewayApi.listener.protocol }}
+      port: {{ .Values.gatewayApi.listener.port }}
+      hostname: {{ .Values.ingress.host | quote }}
+      allowedRoutes:
+        namespaces:
+          from: Same
+{{- end }}

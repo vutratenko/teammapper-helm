@@ -61,3 +61,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- define "teammapper.image" -}}
 {{- printf "%s:%s@%s" .Values.image.repository .Values.image.tag .Values.image.digest }}
 {{- end }}
+
+{{- define "teammapper.gatewayServiceName" -}}
+{{- printf "cilium-gateway-%s" (include "teammapper.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}

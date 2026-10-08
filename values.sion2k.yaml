@@ -4,6 +4,9 @@ config:
 
 ingress:
   enabled: true
+  # Phase one keeps production traffic direct. Change to gateway only after
+  # Gateway and HTTPRoute conditions are healthy and internal tests pass.
+  backend: service
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: corp-acme
@@ -15,6 +18,12 @@ ingress:
   tls:
     enabled: true
     secretName: teammapper-tls
+
+gatewayApi:
+  enabled: true
+  className: cilium
+  addresses:
+    - 192.168.88.113
 
 postgresql:
   volume:

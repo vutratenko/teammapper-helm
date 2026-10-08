@@ -39,6 +39,9 @@ service:
 
 ingress:
   enabled: false
+  # service routes directly to TeamMapper; gateway routes through the
+  # Cilium-generated cilium-gateway-<gateway name> Service.
+  backend: service
   className: nginx
   annotations: {}
   host: teammapper.example.com
@@ -47,6 +50,18 @@ ingress:
   tls:
     enabled: true
     secretName: teammapper-tls
+
+gatewayApi:
+  enabled: false
+  className: cilium
+  addresses: []
+  listener:
+    name: http
+    port: 80
+    protocol: HTTP
+  route:
+    path: /
+    pathType: PathPrefix
 
 config:
   mode: PROD

@@ -25,7 +25,18 @@ spec:
             pathType: {{ .Values.ingress.pathType }}
             backend:
               service:
+                {{- if eq .Values.ingress.backend "gateway" }}
+                {{- if not .Values.gatewayApi.enabled }}
+                {{- fail "ingress.backend=gateway requires gatewayApi.enabled=true" }}
+                {{- end }}
+                name: {{ include "teammapper.gatewayServiceName" . }}
+                port:
+                  number: {{ .Values.gatewayApi.listener.port }}
+                {{- else if eq .Values.ingress.backend "service" }}
                 name: {{ include "teammapper.fullname" . }}
                 port:
                   name: http
+                {{- else }}
+                {{- fail "ingress.backend must be service or gateway" }}
+                {{- end }}
 {{- end }}
