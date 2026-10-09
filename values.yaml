@@ -2,8 +2,8 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/b310-digital/teammapper
-  tag: v0.2.9-3
-  digest: sha256:f120a4ad4b4e11c44df5ff25be7d3385e35e8771fb09d87114bfba39cb0b3bda
+  tag: v0.3.7-1
+  digest: sha256:a48e4e01c0361c69743374b7ae1416692993bf3f2bc173d892af11474c890538
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []

@@ -2,8 +2,8 @@ apiVersion: v2
 name: teammapper
 description: A Helm chart for self-hosting TeamMapper on Kubernetes
 type: application
-version: 0.2.0
-appVersion: "v0.2.9-3"
+version: 0.2.1
+appVersion: "v0.3.7-1"
 home: https://github.com/b310-digital/teammapper
 sources:
   - https://github.com/b310-digital/teammapper
