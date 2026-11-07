@@ -1,15 +1,17 @@
 config:
-  deleteAfterDays: 365
+  deleteAfterDays: 3650
   postgresSsl: true
 
 ingress:
-  enabled: true
+  enabled: false
   # Set to service for an immediate rollback to direct NGINX routing.
   backend: gateway
+  sharedGatewayServiceName: cilium-gateway-public
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: corp-acme
     ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
@@ -20,11 +22,9 @@ ingress:
     enabled: true
     secretName: teammapper-tls
 
+# Per-app Gateway removed; routing is HTTPRoute → shared Gateway `public` (see sion2k-gateway GitOps).
 gatewayApi:
-  enabled: true
-  className: cilium
-  addresses:
-    - 192.168.88.113
+  enabled: false
 
 postgresql:
   volume:
